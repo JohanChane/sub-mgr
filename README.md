@@ -7,6 +7,7 @@
 [converter]
 base_url = "https://api.wcc.best/sub"  # 转换服务的基础URL
 config_url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online.ini"  # 规则配置文件URL
+location = "https://www.example.com/file/"
 
 [converter.opts]
 target = "clash"    # 目标格式：clash, surge, quanx 等
