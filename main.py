@@ -4,7 +4,7 @@ SubMgr Main Program Entry
 """
 
 import argparse
-from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert
+from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links
 
 
 def main():
@@ -26,12 +26,17 @@ def main():
     # list 命令
     list_parser = subparsers.add_parser('list', help='列出订阅配置')
 
+    # list-location 命令
+    list_location_parser = subparsers.add_parser('list-location', help='列出订阅的完整location链接')
+
     args = parser.parse_args()
 
     if args.command == 'convert':
         convert_subscriptions(args.config, args.out_dir)
     elif args.command == 'list':
         list_subscriptions(args.config)
+    elif args.command == 'list-location':
+        list_location_links(args.config)
     else:
         # 如果没有指定子命令，显示帮助信息
         parser.print_help()

@@ -32,6 +32,51 @@ def list_subscriptions(config_path: str):
     print("=" * 60)
 
 
+def list_location_links(config_path: str):
+    """列出订阅的完整location链接"""
+    config = load_config_from_toml(config_path)
+    if not config:
+        print("❌ 配置文件加载失败")
+        return
+
+    # 获取location配置
+    settings_config = config.get('settings', {})
+    location_base = settings_config.get('location')
+    
+    if not location_base:
+        print("❌ 配置文件中未找到 location 配置")
+        print("请在 [settings] 部分添加 location = \"https://example.com/file/\"")
+        return
+
+    subscriptions = config.get('subscriptions', [])
+    if not subscriptions:
+        print("❌ 没有找到订阅配置")
+        return
+
+    print(f"📍 基于 location 生成订阅链接")
+    print(f"📁 基础路径: {location_base}")
+    print("\n" + "="*80)
+
+    enabled_count = 0
+    for sub in subscriptions:
+        # 只处理启用的订阅
+        enable = sub.get('enable', True)
+        if not enable:
+            continue
+
+        name = sub.get('name', '未命名')
+        dst_path = sub.get('dst_path', '')
+        
+        if dst_path:
+            # 拼接完整的location链接
+            full_link = location_base.rstrip('/') + '/' + dst_path.lstrip('/')
+            print(f"{name}: {full_link}")
+            enabled_count += 1
+
+    print("=" * 80)
+    print(f"📊 总计: {enabled_count} 个启用的订阅配置")
+
+
 def convert_subscriptions(config_path: str, out_dir: str):
     """转换订阅配置"""
     config = load_config_from_toml(config_path)
