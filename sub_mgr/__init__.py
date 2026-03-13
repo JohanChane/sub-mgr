@@ -3,7 +3,7 @@
 __version__ = "0.1.0"
 __author__ = "SubMgr Developer"
 
-from .sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links
+from .sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links, install_subscription
 from .core.sub_mgr import SubscriptionConverter, load_config_from_toml, save_config_to_toml
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     'SubscriptionConverter',
     'load_config_from_toml',
     'save_config_to_toml',
+    'install_subscription',
     '__version__',
     '__author__',
 ]

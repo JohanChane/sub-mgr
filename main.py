@@ -4,8 +4,7 @@ SubMgr Main Program Entry
 """
 
 import argparse
-from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links
-
+from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links, install_subscription
 
 def main():
     """主函数"""
@@ -22,6 +21,7 @@ def main():
     convert_parser.add_argument("-o", "--out-dir",
                                default="./out",
                                help="输出目录路径 (默认: ./out)")
+    convert_parser.add_argument("--name", required=False, help="订阅项的名称")
 
     # list 命令
     list_parser = subparsers.add_parser('list', help='列出订阅配置')
@@ -29,14 +29,20 @@ def main():
     # list-location 命令
     list_location_parser = subparsers.add_parser('list-location', help='列出订阅的完整location链接')
 
+    # install 命令
+    install_parser = subparsers.add_parser('install', help='安装订阅配置到服务器')
+    install_parser.add_argument("-n", "--name", required=True, help="订阅名称")
+
     args = parser.parse_args()
 
     if args.command == 'convert':
-        convert_subscriptions(args.config, args.out_dir)
+        convert_subscriptions(args.config, args.out_dir, args.name)
     elif args.command == 'list':
         list_subscriptions(args.config)
     elif args.command == 'list-location':
         list_location_links(args.config)
+    elif args.command == 'install':
+        install_subscription(args.config, args.name)
     else:
         # 如果没有指定子命令，显示帮助信息
         parser.print_help()

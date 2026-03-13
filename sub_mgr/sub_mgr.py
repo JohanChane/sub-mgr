@@ -1,6 +1,7 @@
 import os
 from typing import List
 from .core.sub_mgr import SubscriptionConverter, load_config_from_toml
+import shutil
 
 
 def list_subscriptions(config_path: str):
@@ -42,7 +43,7 @@ def list_location_links(config_path: str):
     # 获取location配置
     settings_config = config.get('settings', {})
     location_base = settings_config.get('location')
-    
+
     if not location_base:
         print("❌ 配置文件中未找到 location 配置")
         print("请在 [settings] 部分添加 location = \"https://example.com/file/\"")
@@ -66,7 +67,7 @@ def list_location_links(config_path: str):
 
         name = sub.get('name', '未命名')
         dst_path = sub.get('dst_path', '')
-        
+
         if dst_path:
             # 拼接完整的location链接
             full_link = location_base.rstrip('/') + '/' + dst_path.lstrip('/')
@@ -77,7 +78,7 @@ def list_location_links(config_path: str):
     print(f"📊 总计: {enabled_count} 个启用的订阅配置")
 
 
-def convert_subscriptions(config_path: str, out_dir: str):
+def convert_subscriptions(config_path: str, out_dir: str, name: str):
     """转换订阅配置"""
     config = load_config_from_toml(config_path)
     if not config:
@@ -89,6 +90,10 @@ def convert_subscriptions(config_path: str, out_dir: str):
         print("❌ 没有找到有效的订阅配置")
         return
 
+    for sub in subscriptions:
+        if name and sub.get('name') == name:
+            subscriptions = [sub]
+            break
     print(f"📋 找到 {len(subscriptions)} 个订阅配置")
 
     # 从配置中获取转换器参数
@@ -136,3 +141,54 @@ def quick_convert(sub_urls: List[str], dst_path: str):
     """快速转换单个订阅"""
     converter = SubscriptionConverter()
     converter.convert_subscription(sub_urls, dst_path)
+
+def install_subscription(config_path: str, name: str):
+    """安装订阅配置到服务器"""
+    config = load_config_from_toml(config_path)
+    if not config:
+        print("❌ 配置文件加载失败")
+        return
+
+    subscriptions = config.get('subscriptions', [])
+    if not subscriptions:
+        print("❌ 没有找到订阅配置")
+        return
+
+    # 查找指定名称的订阅配置
+    sub_to_install = None
+    for sub in subscriptions:
+        if sub.get('name') == name:
+            sub_to_install = sub
+            break
+
+    if not sub_to_install:
+        print(f"❌ 没有找到名称为 '{name}' 的订阅配置")
+        return
+
+    # 获取安装目录配置
+    settings_config = config.get('settings', {})
+    install_dir = settings_config.get('install_dir')
+
+    if not install_dir:
+        print("❌ 配置文件中未找到 install_dir 配置")
+        print("请在 [settings] 部分添加 install_dir = \"/path/to/install/dir\"")
+        return
+
+    # 模拟安装过程（实际安装逻辑需要根据具体需求实现）
+    dst_dir = os.path.join(install_dir, os.path.dirname(sub_to_install.get('dst_path', '')))
+    src_dir = os.path.join(config.get('base_dir', './out'), os.path.dirname(sub_to_install.get('dst_path', '')))
+
+    print(f"📦 正在安装订阅 '{name}' 到服务器...")
+    print(f"📁 安装路径: {dst_dir}")
+
+    # 将 out 的相应目录以管理员权限复制到安装目录
+    import subprocess
+    try:
+        subprocess.run([
+            'sudo', 'cp', '-r', src_dir, dst_dir
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ 以管理员权限复制目录失败: {e}")
+        return
+
+    print(f"✅ 订阅 '{name}' 安装完成")
