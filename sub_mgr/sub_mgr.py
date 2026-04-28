@@ -1,7 +1,36 @@
 import os
 from typing import List
-from .core.sub_mgr import SubscriptionConverter, load_config_from_toml
+from .core.sub_mgr import SubscriptionConverter, load_config_from_toml, save_config_to_toml
 import shutil
+import unicodedata
+import uuid
+
+
+def _disp_width(s: str) -> int:
+    """计算字符串的显示宽度，CJK 和全角字符宽度计为 2"""
+    w = 0
+    for ch in s:
+        eaw = unicodedata.east_asian_width(ch)
+        w += 2 if eaw in ('F', 'W') else 1
+    return w
+
+
+def _trunc(s: str, width: int) -> str:
+    """按显示宽度截断字符串，超出部分用 ... 代替"""
+    dw = 0
+    for i, ch in enumerate(s):
+        eaw = unicodedata.east_asian_width(ch)
+        chw = 2 if eaw in ('F', 'W') else 1
+        if dw + chw > width - 2:
+            return s[:i] + '…'
+        dw += chw
+    return s
+
+
+def _pad(s: str, width: int) -> str:
+    """按显示宽度填充字符串"""
+    dw = _disp_width(s)
+    return s + ' ' * max(0, width - dw)
 
 
 def list_subscriptions(config_path: str):
@@ -18,7 +47,8 @@ def list_subscriptions(config_path: str):
 
     print(f"📋 找到 {len(subscriptions)} 个订阅配置")
     print("\n" + "="*60)
-    print(f"{'名称':<20} {'目标路径':<25} {'订阅URL数量':<12} {'状态':<8}")
+    header = f"{_pad('名称', 18)} {_pad('目标路径', 24)} {_pad('订阅URL数量', 12)} {'状态'}"
+    print(header)
     print("-" * 60)
 
     for sub in subscriptions:
@@ -28,7 +58,7 @@ def list_subscriptions(config_path: str):
         enable = sub.get('enable', True)
         status = "✅ 启用" if enable else "❌ 禁用"
 
-        print(f"{name:<20} {dst_path:<25} {len(sub_urls):<12} {status:<8}")
+        print(f"{_pad(name, 18)} {_pad(_trunc(dst_path, 24), 24)} {_pad(str(len(sub_urls)), 12)} {status}")
 
     print("=" * 60)
 
@@ -184,11 +214,45 @@ def install_subscription(config_path: str, name: str):
     # 将 out 的相应目录以管理员权限复制到安装目录
     import subprocess
     try:
-        subprocess.run([
-            'sudo', 'cp', '-r', src_dir, dst_dir
-        ], check=True)
+        subprocess.run(['sudo', 'mkdir', '-p', os.path.dirname(dst_dir)], check=True)
+        subprocess.run(['sudo', 'cp', '-r', src_dir, dst_dir], check=True)
     except subprocess.CalledProcessError as e:
         print(f"❌ 以管理员权限复制目录失败: {e}")
         return
 
     print(f"✅ 订阅 '{name}' 安装完成")
+
+
+def create_subscription(config_path: str, name: str, sub_urls: List[str]):
+    """创建新的订阅配置"""
+    config = load_config_from_toml(config_path)
+    if not config:
+        print("❌ 配置文件加载失败")
+        return
+
+    if not sub_urls:
+        print("❌ 至少需要指定一个 sub-url")
+        return
+
+    subscriptions = config.get('subscriptions', [])
+
+    for sub in subscriptions:
+        if sub.get('name') == name:
+            print(f"❌ 订阅名称 '{name}' 已存在")
+            return
+
+    dst_path = f"{uuid.uuid4()}/clash.yaml"
+
+    new_sub = {
+        'name': name,
+        'enable': True,
+        'sub_urls': sub_urls,
+        'dst_path': dst_path,
+    }
+
+    subscriptions.append(new_sub)
+    config['subscriptions'] = subscriptions
+
+    save_config_to_toml(config, config_path)
+    print(f"✅ 创建订阅 '{name}' 成功")
+    print(f"📁 目标路径: {dst_path}")

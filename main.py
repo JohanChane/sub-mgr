@@ -4,7 +4,7 @@ SubMgr Main Program Entry
 """
 
 import argparse
-from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links, install_subscription
+from sub_mgr import list_subscriptions, convert_subscriptions, quick_convert, list_location_links, install_subscription, create_subscription
 
 def main():
     """主函数"""
@@ -25,9 +25,13 @@ def main():
 
     # list 命令
     list_parser = subparsers.add_parser('list', help='列出订阅配置')
+    list_subcmds = list_parser.add_subparsers(dest='list_command', help='list 子命令')
+    list_url_parser = list_subcmds.add_parser('url', help='列出订阅的完整location链接')
 
-    # list-location 命令
-    list_location_parser = subparsers.add_parser('list-location', help='列出订阅的完整location链接')
+    # create 命令
+    create_parser = subparsers.add_parser('create', help='创建新的订阅配置')
+    create_parser.add_argument("-n", "--name", required=True, help="订阅名称")
+    create_parser.add_argument("-s", "--sub-url", required=True, nargs='+', dest="sub_urls", help="订阅链接 (可指定多个)")
 
     # install 命令
     install_parser = subparsers.add_parser('install', help='安装订阅配置到服务器')
@@ -38,13 +42,15 @@ def main():
     if args.command == 'convert':
         convert_subscriptions(args.config, args.out_dir, args.name)
     elif args.command == 'list':
-        list_subscriptions(args.config)
-    elif args.command == 'list-location':
-        list_location_links(args.config)
+        if args.list_command == 'url':
+            list_location_links(args.config)
+        else:
+            list_subscriptions(args.config)
+    elif args.command == 'create':
+        create_subscription(args.config, args.name, args.sub_urls)
     elif args.command == 'install':
         install_subscription(args.config, args.name)
     else:
-        # 如果没有指定子命令，显示帮助信息
         parser.print_help()
 
 
