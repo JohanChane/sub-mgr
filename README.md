@@ -1,5 +1,11 @@
 # SubMgr
 
+## Requirements
+
+```sh
+pip install -r requirements.txt
+```
+
 ## Config Sample
 
 ```toml

@@ -174,7 +174,7 @@ def quick_convert(sub_urls: List[str], dst_path: str):
     converter = SubscriptionConverter()
     converter.convert_subscription(sub_urls, dst_path)
 
-def install_subscription(config_path: str, name: str):
+def install_subscription(config_path: str, name: str = None, install_all: bool = False):
     """安装订阅配置到服务器"""
     config = load_config_from_toml(config_path)
     if not config:
@@ -186,18 +186,18 @@ def install_subscription(config_path: str, name: str):
         print("❌ 没有找到订阅配置")
         return
 
-    # 查找指定名称的订阅配置
-    sub_to_install = None
-    for sub in subscriptions:
-        if sub.get('name') == name:
-            sub_to_install = sub
-            break
+    if name:
+        subs_to_install = [sub for sub in subscriptions if sub.get('name') == name]
+        if not subs_to_install:
+            print(f"❌ 没有找到名称为 '{name}' 的订阅配置")
+            return
+    elif install_all or not name:
+        subs_to_install = [sub for sub in subscriptions if sub.get('enable', True)]
 
-    if not sub_to_install:
-        print(f"❌ 没有找到名称为 '{name}' 的订阅配置")
+    if not subs_to_install:
+        print("❌ 没有找到可安装的订阅配置")
         return
 
-    # 获取安装目录配置
     settings_config = config.get('settings', {})
     install_dir = settings_config.get('install_dir')
 
@@ -206,26 +206,25 @@ def install_subscription(config_path: str, name: str):
         print("请在 [settings] 部分添加 install_dir = \"/path/to/install/dir\"")
         return
 
-    # 模拟安装过程（实际安装逻辑需要根据具体需求实现）
-    dst_dir = os.path.join(install_dir, os.path.dirname(sub_to_install.get('dst_path', '')))
-    src_dir = os.path.join(config.get('base_dir', './out'), os.path.dirname(sub_to_install.get('dst_path', '')))
-
-    print(f"📦 正在安装订阅 '{name}' 到服务器...")
-    print(f"📁 安装路径: {dst_dir}")
-
-    # 将 out 的相应目录以管理员权限复制到安装目录
     import subprocess
-    try:
-        subprocess.run(['sudo', 'mkdir', '-p', os.path.dirname(dst_dir)], check=True)
-        subprocess.run(['sudo', 'cp', '-r', src_dir, dst_dir], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"❌ 以管理员权限复制目录失败: {e}")
-        return
 
-    print(f"✅ 订阅 '{name}' 安装完成")
+    for sub in subs_to_install:
+        sub_name = sub.get('name', '未命名')
+        dst_dir = os.path.join(install_dir, os.path.dirname(sub.get('dst_path', '')))
+        src_dir = os.path.join(config.get('base_dir', './out'), os.path.dirname(sub.get('dst_path', '')))
+
+        print(f"📦 正在安装订阅 '{sub_name}' 到服务器...")
+        print(f"📁 安装路径: {dst_dir}")
+
+        try:
+            subprocess.run(['sudo', 'mkdir', '-p', os.path.dirname(dst_dir)], check=True)
+            subprocess.run(['sudo', 'cp', '-r', src_dir, dst_dir], check=True)
+            print(f"✅ 订阅 '{sub_name}' 安装完成")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ 以管理员权限复制目录失败: {e}")
 
 
-def create_subscription(config_path: str, name: str, sub_urls: List[str]):
+def create_subscription(config_path: str, name: str, sub_urls: List[str], sub_id: str = None):
     """创建新的订阅配置"""
     config = load_config_from_toml(config_path)
     if not config:
@@ -251,6 +250,8 @@ def create_subscription(config_path: str, name: str, sub_urls: List[str]):
         'sub_urls': sub_urls,
         'dst_path': dst_path,
     }
+    if sub_id:
+        new_sub['sub_id'] = sub_id
 
     subscriptions.append(new_sub)
     config['subscriptions'] = subscriptions
