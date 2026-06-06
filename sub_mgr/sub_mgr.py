@@ -151,8 +151,10 @@ def convert_subscriptions(config_path: str, out_dir: str, name: str):
     else:
         print(f"📁 使用现有输出目录: {out_dir}")
 
-    # 批量转换
-    results = converter.batch_convert(subscriptions, out_dir)
+    settings_config = config.get('settings', {})
+    sub_url_prefix = settings_config.get('sub_url_prefix')
+
+    results = converter.batch_convert(subscriptions, out_dir, sub_url_prefix)
 
     # 打印结果摘要
     print("\n" + "="*50)

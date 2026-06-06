@@ -98,7 +98,7 @@ class SubscriptionConverter:
             print(f"❌ 转换过程中发生错误: {e}")
             return False
 
-    def batch_convert(self, subscriptions: List[Dict], out_dir: str) -> Dict[str, bool]:
+    def batch_convert(self, subscriptions: List[Dict], out_dir: str, sub_url_prefix: str = None) -> Dict[str, bool]:
         """
         批量转换多个订阅
         """
@@ -119,6 +119,11 @@ class SubscriptionConverter:
             dst_path = sub_config.get('dst_path')
             subscription_opts = sub_config.get('opts')
             append_opts = sub_config.get('append_opts')
+
+            sub_id = sub_config.get('sub_id')
+            if sub_id and sub_url_prefix:
+                composed_url = sub_url_prefix.rstrip('/') + '/' + sub_id
+                sub_urls = [composed_url] + sub_urls
 
             if not sub_urls:
                 print("❌ 跳过：sub_urls 为空")
