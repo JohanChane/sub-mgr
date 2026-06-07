@@ -218,7 +218,7 @@ def install_subscription(config_path: str, name: str = None, install_all: bool =
 
         try:
             subprocess.run(['sudo', 'mkdir', '-p', os.path.dirname(dst_dir)], check=True)
-            subprocess.run(['sudo', 'cp', '-r', src_dir, dst_dir], check=True)
+            subprocess.run(['sudo', 'rsync', '-a', src_dir + '/', dst_dir + '/'], check=True)
             print(f"✅ 订阅 '{sub_name}' 安装完成")
         except subprocess.CalledProcessError as e:
             print(f"❌ 以管理员权限复制目录失败: {e}")
