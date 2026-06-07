@@ -6,6 +6,8 @@ import time
 from typing import List, Dict, Optional
 from urllib.parse import quote
 
+from .proxy_restorer import restore_proxies
+
 class SubscriptionConverter:
     def __init__(self, base_url=None, config_url=None, opts=None):
         self.base_url = base_url
@@ -121,6 +123,7 @@ class SubscriptionConverter:
             append_opts = sub_config.get('append_opts')
 
             sub_id = sub_config.get('sub_id')
+            composed_url = None
             if sub_id and sub_url_prefix:
                 composed_url = sub_url_prefix.rstrip('/') + '/' + sub_id
                 sub_urls = [composed_url] + sub_urls
@@ -148,6 +151,9 @@ class SubscriptionConverter:
                 append_opts=append_opts
             )
             results[dst_path] = success
+
+            if success and composed_url:
+                restore_proxies(dst_path, composed_url)
 
             if i < len(subscriptions) - 1:
                 time.sleep(2)
