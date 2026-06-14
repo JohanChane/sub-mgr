@@ -3,3 +3,4 @@ build/
 dist/
 .tool-versions
 out/
+.venv/

@@ -1,0 +1,22 @@
+[project]
+name = "sub-mgr"
+version = "0.1.0"
+description = "订阅配置转换工具"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "tomli>=2.0.0",
+    "tomli-w>=1.0.0",
+    "pyyaml>=6.0",
+]
+authors = [
+    { name = "SubMgr Developer" },
+]
+license = { text = "MIT" }
+
+[project.scripts]
+sub-mgr = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

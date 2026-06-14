@@ -2,18 +2,30 @@
 
 ## Requirements
 
+[uv](https://docs.astral.sh/uv/) is required.
+
 ```sh
-pip install -r requirements.txt
+uv sync
+```
+
+## Usage
+
+```sh
+uv run ./main.py convert
+uv run ./main.py install
 ```
 
 ## Config Sample
 
 ```toml
 # SubMgr 配置文件
+[settings]
+location = "https://www.example.com/file/"
+sub_url_prefix = "https://www.example.com:9999/sdfsdfsdfsdfsdf/"  # 与 sub_id 拼接成 sub_url
+
 [converter]
 base_url = "https://api.wcc.best/sub"  # 转换服务的基础URL
 config_url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online.ini"  # 规则配置文件URL
-location = "https://www.example.com/file/"
 
 [converter.opts]
 target = "clash"    # 目标格式：clash, surge, quanx 等
@@ -49,13 +61,13 @@ sub_urls = [
 dst_path = "clash/test.yaml"  # 输出文件路径
 
 [[subscriptions]]
-name = "简单订阅"    # 订阅名称
-enable = true       # 是否启用该订阅
+name = "带 sub_id 的订阅"  # 订阅名称
+enable = true              # 是否启用该订阅
+sub_id = "abc123"  # 订阅ID，与 settings.sub_url_prefix 拼接为完整 URL
 sub_urls = [
     "https://simple.example.com/sub"
 ]
 dst_path = "clash/simple.yaml"  # 输出文件路径
-# 不自定义选项，使用全局配置
 
 [[subscriptions]]
 name = "多URL合并订阅"  # 订阅名称
