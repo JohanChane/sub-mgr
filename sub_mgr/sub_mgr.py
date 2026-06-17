@@ -151,10 +151,7 @@ def convert_subscriptions(config_path: str, out_dir: str, name: str):
     else:
         print(f"📁 使用现有输出目录: {out_dir}")
 
-    settings_config = config.get('settings', {})
-    sub_url_prefix = settings_config.get('sub_url_prefix')
-
-    results = converter.batch_convert(subscriptions, out_dir, sub_url_prefix)
+    results = converter.batch_convert(subscriptions, out_dir)
 
     # 打印结果摘要
     print("\n" + "="*50)
@@ -224,7 +221,7 @@ def install_subscription(config_path: str, name: str = None, install_all: bool =
             print(f"❌ 以管理员权限复制目录失败: {e}")
 
 
-def create_subscription(config_path: str, name: str, sub_urls: List[str], sub_id: str = None):
+def create_subscription(config_path: str, name: str, sub_urls: List[str]):
     """创建新的订阅配置"""
     config = load_config_from_toml(config_path)
     if not config:
@@ -250,8 +247,6 @@ def create_subscription(config_path: str, name: str, sub_urls: List[str], sub_id
         'sub_urls': sub_urls,
         'dst_path': dst_path,
     }
-    if sub_id:
-        new_sub['sub_id'] = sub_id
 
     subscriptions.append(new_sub)
     config['subscriptions'] = subscriptions

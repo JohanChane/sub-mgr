@@ -21,7 +21,6 @@ uv run ./main.py install
 # SubMgr 配置文件
 [settings]
 location = "https://www.example.com/file/"
-sub_url_prefix = "https://www.example.com:9999/sdfsdfsdfsdfsdf/"  # 与 sub_id 拼接成 sub_url
 
 [converter]
 base_url = "https://api.wcc.best/sub"  # 转换服务的基础URL
@@ -59,15 +58,6 @@ sub_urls = [
     "https://test.example.com/sub"
 ]
 dst_path = "clash/test.yaml"  # 输出文件路径
-
-[[subscriptions]]
-name = "带 sub_id 的订阅"  # 订阅名称
-enable = true              # 是否启用该订阅
-sub_id = "abc123"  # 订阅ID，与 settings.sub_url_prefix 拼接为完整 URL
-sub_urls = [
-    "https://simple.example.com/sub"
-]
-dst_path = "clash/simple.yaml"  # 输出文件路径
 
 [[subscriptions]]
 name = "多URL合并订阅"  # 订阅名称

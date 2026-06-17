@@ -3,7 +3,7 @@ import tomli
 import tomli_w
 import os
 import time
-from typing import List, Dict, Optional
+from typing import List, Dict
 from urllib.parse import quote
 
 from .proxy_restorer import restore_proxies
@@ -100,14 +100,13 @@ class SubscriptionConverter:
             print(f"❌ 转换过程中发生错误: {e}")
             return False
 
-    def batch_convert(self, subscriptions: List[Dict], out_dir: str, sub_url_prefix: str = None) -> Dict[str, bool]:
+    def batch_convert(self, subscriptions: List[Dict], out_dir: str) -> Dict[str, bool]:
         """
         批量转换多个订阅
         """
         results = {}
 
         for i, sub_config in enumerate(subscriptions):
-            # 检查是否启用
             enable = sub_config.get('enable', True)
             if not enable:
                 print(f"\n⏭️  跳过第 {i+1}/{len(subscriptions)} 个订阅（未启用）")
@@ -122,12 +121,6 @@ class SubscriptionConverter:
             subscription_opts = sub_config.get('opts')
             append_opts = sub_config.get('append_opts')
 
-            sub_id = sub_config.get('sub_id')
-            composed_url = None
-            if sub_id and sub_url_prefix:
-                composed_url = sub_url_prefix.rstrip('/') + '/' + sub_id
-                sub_urls = [composed_url] + sub_urls
-
             if not sub_urls:
                 print("❌ 跳过：sub_urls 为空")
                 continue
@@ -135,7 +128,6 @@ class SubscriptionConverter:
                 print("❌ 跳过：dst_path 为空")
                 continue
 
-            # 打印选项信息
             if subscription_opts:
                 print(f"⚙️  使用自定义选项: {subscription_opts}")
             if append_opts:
@@ -152,8 +144,8 @@ class SubscriptionConverter:
             )
             results[dst_path] = success
 
-            if success and composed_url:
-                restore_proxies(dst_path, composed_url)
+            if success:
+                restore_proxies(dst_path, sub_urls)
 
             if i < len(subscriptions) - 1:
                 time.sleep(2)

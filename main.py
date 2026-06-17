@@ -32,7 +32,6 @@ def main():
     create_parser = subparsers.add_parser('create', help='创建新的订阅配置')
     create_parser.add_argument("-n", "--name", required=True, help="订阅名称")
     create_parser.add_argument("-s", "--sub-url", required=True, nargs='+', dest="sub_urls", help="订阅链接 (可指定多个)")
-    create_parser.add_argument("--sub-id", required=False, help="订阅ID")
 
     # install 命令
     install_parser = subparsers.add_parser('install', help='安装订阅配置到服务器')
@@ -49,7 +48,7 @@ def main():
         else:
             list_subscriptions(args.config)
     elif args.command == 'create':
-        create_subscription(args.config, args.name, args.sub_urls, args.sub_id)
+        create_subscription(args.config, args.name, args.sub_urls)
     elif args.command == 'install':
         install_subscription(args.config, args.name, install_all=args.install_all)
     else:

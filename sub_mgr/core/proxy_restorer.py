@@ -2,10 +2,10 @@ import yaml
 import requests
 
 
-def _fetch_original_proxies(url: str) -> list:
+def _fetch_proxies_from_url(url: str) -> list:
     resp = requests.get(
         url,
-        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+        headers={'User-Agent': 'mihomo'},
         timeout=30
     )
     resp.raise_for_status()
@@ -15,11 +15,28 @@ def _fetch_original_proxies(url: str) -> list:
     return []
 
 
-def restore_proxies(dst_path: str, composed_url: str) -> bool:
+def _collect_original_proxies(sub_urls: list) -> dict:
+    original_map = {}
+    for url in sub_urls:
+        if not url.startswith(('http://', 'https://')):
+            continue
+        try:
+            proxies = _fetch_proxies_from_url(url)
+            for proxy in proxies:
+                name = proxy.get('name')
+                if name:
+                    original_map[name] = proxy
+        except Exception as e:
+            print(f"  ⚠️  获取原始proxies失败 ({url}): {e}")
+            continue
+    return original_map
+
+
+def restore_proxies(dst_path: str, sub_urls: list) -> bool:
     try:
-        original_proxies = _fetch_original_proxies(composed_url)
-        if not original_proxies:
-            print(f"  ⚠️  原始URL未返回有效proxies，跳过还原")
+        original_map = _collect_original_proxies(sub_urls)
+        if not original_map:
+            print(f"  ⚠️  未从sub_urls中获取到有效proxies，跳过还原")
             return False
 
         with open(dst_path, 'r', encoding='utf-8') as f:
@@ -33,7 +50,16 @@ def restore_proxies(dst_path: str, composed_url: str) -> bool:
             print(f"  ⚠️  输出文件中没有proxies字段，跳过还原")
             return False
 
-        output_data['proxies'] = original_proxies
+        replaced_count = 0
+        for i, proxy in enumerate(output_data['proxies']):
+            name = proxy.get('name')
+            if name and name in original_map:
+                output_data['proxies'][i] = original_map[name]
+                replaced_count += 1
+
+        if replaced_count == 0:
+            print(f"  ⚠️  输出文件中没有匹配的proxy name，跳过还原")
+            return False
 
         with open(dst_path, 'w', encoding='utf-8') as f:
             yaml.dump(
@@ -45,12 +71,9 @@ def restore_proxies(dst_path: str, composed_url: str) -> bool:
                 width=4096
             )
 
-        print(f"  ✅ 已从原始URL还原 {len(original_proxies)} 个proxies")
+        print(f"  ✅ 已还原 {replaced_count} 个proxies (共收集 {len(original_map)} 个原始proxy)")
         return True
 
-    except requests.exceptions.RequestException as e:
-        print(f"  ⚠️  获取原始proxies网络错误: {e}")
-        return False
     except Exception as e:
         print(f"  ⚠️  还原proxies失败: {e}")
         return False
