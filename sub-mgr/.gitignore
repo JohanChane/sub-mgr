@@ -1,1 +1,8 @@
+__pycache__/
+build/
+dist/
+.tool-versions
+out/
+.venv/
+
 /configs/config.toml
