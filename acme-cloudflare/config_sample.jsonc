@@ -1,0 +1,20 @@
+{
+  // Path to acme.sh script
+  "acme_script": "/root/.acme.sh/acme.sh",
+  // Cloudflare API credentials for DNS-01 challenge
+  "cloudflare": {
+    "dns_token": "YOUR_CF_DNS_TOKEN",
+    "account_id": "YOUR_CF_ACCOUNT_ID"
+  },
+  // Cloudflare cache purge credentials
+  "purge": {
+    "zone_id": "YOUR_ZONE_ID",
+    "api_token": "YOUR_CF_API_TOKEN"
+  },
+  "domains": [
+    "www.example.com"
+  ],
+  // Nginx SSL directory and reload command
+  "ssl_path": "/etc/nginx/ssl",
+  "reload_cmd": "sudo systemctl reload nginx"
+}
